@@ -64,16 +64,68 @@
 <body class="bg-white flex flex-col items-center justify-center h-screen w-screen overflow-hidden antialiased p-4">
     <div class="text-center">
         <div class="video-wrapper bg-white w-full max-w-xl md:max-w-2xl lg:max-w-3xl aspect-video mb-10 animate-video-pulse">
-          <video src="video.mp4" type="video/mp4" class="w-full h-full" autoplay muted loop />
-        
+          <!-- Added id="myVideo" and used proper closing tag -->
+          <video id="myVideo" src="video.mp4" type="video/mp4" class="w-full h-full" autoplay muted loop></video>
         </div>
 
-  <div class="flex justify-center space-x-2.5">
+        <div class="flex justify-center space-x-2.5">
             <span class="block w-3 h-3 bg-gray-500 rounded-full animate-dot-bounce" style="animation-delay: -0.32s;"></span>
             <span class="block w-3 h-3 bg-gray-500 rounded-full animate-dot-bounce" style="animation-delay: -0.16s;"></span>
             <span class="block w-3 h-3 bg-gray-500 rounded-full animate-dot-bounce"></span>
         </div>
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const videoElement = document.getElementById('myVideo');
+
+            if (videoElement) {
+                // Function to handle visibility change
+                const handleVisibilityChange = () => {
+                    if (document.hidden) {
+                        // Tab has lost focus or is in the background
+                        if (!videoElement.paused) {
+                            videoElement.pause();
+                            // console.log('Video paused due to tab losing focus.');
+                        }
+                    } else {
+                        // Tab has gained focus or is visible
+                        // Attempt to play the video.
+                        // The `autoplay` attribute handles initial play.
+                        // This ensures it resumes if it was paused due to losing focus.
+                        // Play() returns a Promise which can be used to detect if play was successful.
+                        const playPromise = videoElement.play();
+                        if (playPromise !== undefined) {
+                            playPromise.catch(error => {
+                                // Autoplay was prevented.
+                                console.warn('Video play() on focus recovery was prevented:', error);
+                                // This might happen if the video is unmuted or browser policies are very strict.
+                                // For a muted video with `autoplay` and `loop`, this is less common.
+                            });
+                        }
+                        // console.log('Video resumed on focus recovery.');
+                    }
+                };
+
+                // Listen for visibility changes
+                document.addEventListener('visibilitychange', handleVisibilityChange);
+
+                // Fallback: Ensure video plays if it's supposed to (autoplay) but didn't,
+                // and the tab is currently visible.
+                // The `autoplay` attribute should handle this, but this is an extra check.
+                if (!document.hidden && videoElement.paused) {
+                    const playPromise = videoElement.play();
+                    if (playPromise !== undefined) {
+                        playPromise.catch(error => {
+                            console.warn('Initial video play() attempt on visible tab was prevented:', error);
+                        });
+                    }
+                }
+
+            } else {
+                console.error('Video element with id "myVideo" not found.');
+            }
+        });
+    </script>
 </body>
 </html>
